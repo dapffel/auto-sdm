@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store
+.ipynb_checkpoints/
+
+# run outputs
+runs/
+artifacts/
+*.sqlite
+*.db
+
+# geospatial / model outputs
+*.tif
+*.grd
+*.gri
+!benchmark/**/*.tif
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
