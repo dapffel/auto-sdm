@@ -51,7 +51,9 @@ The claim "this is the best model" is only worth as much as the rule that chose 
 species make that rule measurable.
 
 Because a simulated species has a known true niche, the whole search can be run over simulated
-data and the selector's pick compared against the truth-optimal candidate:
+data and the selector's pick compared against the truth-optimal candidate. Crucially the species
+are simulated **over real environmental rasters**, so the calibration inherits the collinearity
+and spatial structure of genuine climate rather than a synthetic grid:
 
 ```
 selector_regret = score_true(selector_pick) − score_true(best_candidate)
@@ -137,9 +139,8 @@ auto-sdm composes existing, independently tested packages rather than reimplemen
 | Package | Role |
 |---|---|
 | [`lit-review`](https://github.com/dapffel/lit-review) | Extracts structured SDM methodology from papers. LangGraph pipeline, provider-agnostic via LiteLLM, run-history RAG. Feeds the proposer. |
-| [`virtual-sdm-runner`](https://github.com/dapffel/virtual-sdm-runner) | Compiles methodology into reproducible virtual-species experiments with known truth. The benchmark and the execution contract. |
 | [`xferweight`](https://github.com/dapffel/xferweight) | Importance weighting for covariate shift — Shimodaira weights, IWCV, effective-sample-size diagnostics. The transferability layer. |
-| [`sdm_pipepy`](https://github.com/dapffel/sdm_pipepy) | Real-raster machinery: WorldClim loading, spatial partitioning, MESS novelty. |
+| [`sdm_pipepy`](https://github.com/dapffel/sdm_pipepy) | Real-raster machinery: WorldClim loading, spatial partitioning, MESS novelty, and virtual species with known niches on real climate — the basis for selector calibration. |
 
 ## Stack
 
@@ -154,7 +155,7 @@ auto-sdm composes existing, independently tested packages rather than reimplemen
 
 | Phase | Scope |
 |---|---|
-| **0** | Generalize the execution contract to admit real data; backend registry; per-step artifacts and cards |
+| **0** | The execution contract — `CandidatePlan` split into `data_source` + `methodology`, so one methodology runs unchanged against real or virtual data; backend registry; per-step artifacts and cards |
 | **1** | Search over a small space (3 algorithms × 2 CV designs × 2 background strategies) on real data with a fixed selector. End to end, CLI. |
 | **2** | **Selector calibration** — run the search over virtual species, measure regret per rule, adopt the defensible composite |
 | **3** | Real-data depth — cleaning, accessible area (M), predictor selection, ODMAP report generation |
