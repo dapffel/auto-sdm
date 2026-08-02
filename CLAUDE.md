@@ -69,11 +69,37 @@ claims reproducibility, and a backend that ignores the seed silently breaks that
   `Assumption`/`UnsupportedStep`, and the run records (`StepRecord`, `Artifact`,
   `SelectionScore`, `CandidateResult`, `RunManifest`, `RunResult`).
 - **`backends.py`** — `Backend` protocol, `BackendRegistry`, `Resolution`.
+- **`digest.py`** — content addressing. Canonicalises values (including arrays) to a stable
+  hash. Undigestable types **raise**: a `repr` fallback would embed a memory address and
+  make every rerun look different, which is worse than failing loudly.
+- **`store.py`** — `ArtifactStore`. Content-addressed blobs plus per-run JSON records.
+- **`sources.py`** — materialises a `DataSource` into the stage context. Both kinds converge
+  on one shape (`grids`, `coords`, `labels`, `predictor_names`, `occurrence_type`) so nothing
+  downstream can tell them apart. `true_coefficients` is used here and discarded — it must
+  never appear in the returned context.
+- **`executor.py`** — walks `MethodologySpec.steps()` in order, resolving each stage.
+- **`builtin.py`** — the shipped Python backends and `default_registry()`.
+
+### The stage contract (`executor.py`)
+
+Stages communicate through one `dict[str, Any]` context: a backend's outputs are merged into
+it and become the next stage's inputs. Two conventions:
+
+- The reserved output key **`metrics`** is lifted into the `StepRecord` rather than threaded
+  onward, so metrics never masquerade as data.
+- Every array a stage emits is persisted content-addressed. A stage that leaves the data
+  alone re-emits identical bytes, which makes "this stage changed nothing" a checkable fact
+  about the run record rather than a claim in a step card.
+
+A candidate can fail three ways, and they are deliberately distinct: an **unresolved method**
+(typed `UnsupportedStep`, attached to the returned plan so it reaches the backlog), an
+**unreadable data source** (same, via `UnsupportedDataSource`), or a **backend raising**
+(a crash, *not* a capability gap — it must not pollute the backlog). None of them fail the run.
 
 ### Not yet built
 
-Proposer, executor, selector, calibration harness, artifact store, and web app. Phases 1-5
-in `README.md`.
+Proposer, selector, calibration harness, and web app. `sources.py` reads `.npy` grids only;
+GeoTIFF is reported as a typed gap rather than approximated. Phases 2-5 in `README.md`.
 
 ## Ecosystem
 
