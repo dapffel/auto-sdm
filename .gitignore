@@ -22,3 +22,6 @@ artifacts/
 .Rhistory
 .RData
 .Rproj.user/
+
+# Claude Code local settings
+.claude/settings.local.json
