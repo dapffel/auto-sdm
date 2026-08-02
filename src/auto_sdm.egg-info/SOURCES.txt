@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+src/auto_sdm/__init__.py
+src/auto_sdm/backends.py
+src/auto_sdm/models.py
+src/auto_sdm.egg-info/PKG-INFO
+src/auto_sdm.egg-info/SOURCES.txt
+src/auto_sdm.egg-info/dependency_links.txt
+src/auto_sdm.egg-info/requires.txt
+src/auto_sdm.egg-info/top_level.txt
+tests/test_backends.py
+tests/test_models.py
