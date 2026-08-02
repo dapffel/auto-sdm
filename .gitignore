@@ -25,3 +25,8 @@ artifacts/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# build artifacts
+*.egg-info/
+build/
+dist/
