@@ -58,13 +58,20 @@ OccurrenceType = Literal["presence_only", "presence_absence"]
 
 
 class RealDataSource(FrozenModel):
-    """A user's dataset. The system does not know the truth."""
+    """A user's dataset. The system does not know the truth.
+
+    ``crs`` describes the *occurrence coordinates*; predictors carry their own CRS in
+    their file. When the two differ the occurrences are reprojected and the reprojection
+    is recorded, because a mismatch that goes unnoticed silently discards most of a
+    dataset.
+    """
 
     kind: Literal["real"] = "real"
     occurrences_path: str
     predictor_paths: list[str] = Field(min_length=1)
     occurrence_type: OccurrenceType
     crs: str = "EPSG:4326"
+    date_field: str | None = None  # None auto-detects eventDate/date/year
 
 
 class VirtualDataSource(FrozenModel):

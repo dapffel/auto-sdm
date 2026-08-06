@@ -86,14 +86,35 @@ def execute_candidate(
     if not plan.is_executable:
         return _failed(plan, records, "plan carries unsupported steps and was not executed")
 
+    started = time.perf_counter()
     try:
-        context = load_data_source(plan.data_source, plan.random_seed)
+        context, load_assumptions = load_data_source(plan.data_source, plan.random_seed)
     except UnsupportedDataSource as exc:
         return _failed(plan, records, exc.gap.message, [exc.gap])
 
-    metrics: dict[str, float] = {}
+    # Loading gets its own step record. Reprojections and dropped records are decisions
+    # about the user's data, and burying them in the first methodology stage would make
+    # "how many of my occurrences actually made it in" unanswerable from the run record.
+    records.append(
+        StepRecord(
+            stage="data_source",
+            candidate_id=plan.candidate_id,
+            method=plan.data_source.kind,
+            backend="python-source-loader",
+            inputs_digest=digest_obj(plan.data_source),
+            artifacts=_persist(store, "data_source", context),
+            metrics={"n_records": float(context["labels"].size)},
+            assumptions=list(load_assumptions),
+            random_seed=plan.random_seed,
+            duration_seconds=time.perf_counter() - started,
+        )
+    )
+    store.write_step_record(run_id, 0, records[-1])
 
-    for index, (stage, spec) in enumerate(plan.methodology.steps()):
+    metrics: dict[str, float] = {"n_records": float(context["labels"].size)}
+
+    for offset, (stage, spec) in enumerate(plan.methodology.steps()):
+        index = offset + 1
         resolution = registry.resolve(stage, spec)
         if resolution.backend is None:
             gap = resolution.gap

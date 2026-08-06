@@ -22,6 +22,7 @@ def test_a_candidate_runs_end_to_end(plan: CandidatePlan, store: ArtifactStore) 
     result = execute_candidate(plan, default_registry(), store, "run1")
     assert not result.failed, result.failure_reason
     assert [record.stage for record in result.step_records] == [
+        "data_source",
         "cleaning",
         "accessible_area",
         "predictors",
@@ -47,11 +48,12 @@ def test_step_records_are_persisted(plan: CandidatePlan, store: ArtifactStore) -
     execute_candidate(plan, default_registry(), store, "run1")
     steps = store.root / "runs" / "run1" / "candidates" / "c1" / "steps"
     assert sorted(path.name for path in steps.iterdir()) == [
-        "00-cleaning.json",
-        "01-accessible_area.json",
-        "02-predictors.json",
-        "03-split.json",
-        "04-algorithm.json",
+        "00-data_source.json",
+        "01-cleaning.json",
+        "02-accessible_area.json",
+        "03-predictors.json",
+        "04-split.json",
+        "05-algorithm.json",
     ]
 
 
@@ -185,7 +187,7 @@ def test_an_unreadable_data_source_fails_the_candidate_rather_than_the_run(
     )
     result = execute_candidate(plan, default_registry(), store, "run1")
     assert result.failed
-    assert result.plan.unsupported_steps[0].code == "unsupported_predictor_format"
+    assert result.plan.unsupported_steps[0].code == "unreadable_raster"
 
 
 def test_a_backend_raising_fails_only_its_candidate(

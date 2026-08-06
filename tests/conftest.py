@@ -51,13 +51,45 @@ def virtual_source(predictor_paths: list[str]) -> VirtualDataSource:
 
 
 @pytest.fixture
+def geotiff_paths(tmp_path: Path, predictor_paths: list[str]) -> list[str]:
+    """The same two layers written as georeferenced GeoTIFFs.
+
+    A real CRS and affine transform, so the coordinate path is exercised rather than
+    stubbed: one degree per cell starting at 10°E, 50°N and running south.
+    """
+    rasterio = pytest.importorskip("rasterio")
+    from rasterio.transform import from_origin
+
+    transform = from_origin(10.0, 50.0, 1.0, 1.0)
+    paths = []
+    for source in predictor_paths:
+        grid = np.load(source)
+        path = tmp_path / (Path(source).stem + ".tif")
+        with rasterio.open(
+            path,
+            "w",
+            driver="GTiff",
+            height=grid.shape[0],
+            width=grid.shape[1],
+            count=1,
+            dtype="float64",
+            crs="EPSG:4326",
+            transform=transform,
+            nodata=np.nan,
+        ) as handle:
+            handle.write(grid, 1)
+        paths.append(str(path))
+    return paths
+
+
+@pytest.fixture
 def real_source(tmp_path: Path, predictor_paths: list[str], virtual_source) -> RealDataSource:
     """The same records as ``virtual_source``, arriving through the real-data path.
 
     Built by drawing from the virtual species and writing the result to CSV, so a test can
     assert that one methodology produces the same answer through either source.
     """
-    context = load_data_source(virtual_source, random_seed=7)
+    context, _ = load_data_source(virtual_source, random_seed=7)
     path = tmp_path / "occurrences.csv"
     with open(path, "w", newline="") as handle:
         writer = csv.writer(handle)

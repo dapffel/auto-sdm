@@ -74,9 +74,15 @@ claims reproducibility, and a backend that ignores the seed silently breaks that
   make every rerun look different, which is worse than failing loudly.
 - **`store.py`** — `ArtifactStore`. Content-addressed blobs plus per-run JSON records.
 - **`sources.py`** — materialises a `DataSource` into the stage context. Both kinds converge
-  on one shape (`grids`, `coords`, `labels`, `predictor_names`, `occurrence_type`) so nothing
-  downstream can tell them apart. `true_coefficients` is used here and discarded — it must
-  never appear in the returned context.
+  on `CONTEXT_KEYS` exactly, so nothing downstream can tell them apart. `true_coefficients`
+  is used here and discarded — it must never appear in the returned context. Returns
+  `(context, assumptions)`.
+- **`rasters.py`** — predictor stacks. GeoTIFF via `rasterio` (optional, `auto-sdm[geo]`) and
+  bare `.npy`. `PredictorGrids.transform` is `None` for `.npy`: code needing world
+  coordinates must treat that as a gap, because an identity transform silently means "cell
+  indices are degrees".
+- **`occurrences.py`** — occurrence CSVs. Darwin Core and common column aliases, CRS
+  reprojection via `pyproj`, date parsing.
 - **`executor.py`** — walks `MethodologySpec.steps()` in order, resolving each stage.
 - **`builtin.py`** — the shipped Python backends and `default_registry()`.
 
@@ -96,10 +102,25 @@ A candidate can fail three ways, and they are deliberately distinct: an **unreso
 **unreadable data source** (same, via `UnsupportedDataSource`), or a **backend raising**
 (a crash, *not* a capability gap — it must not pollute the backlog). None of them fail the run.
 
+### Ingest never loses records quietly
+
+Every place a record can vanish emits an `Assumption` carrying the count: unparseable
+coordinates, unparseable dates, unrecognised presence values, reprojection, and records
+outside the predictor extent. This is not politeness — a user whose occurrence CRS is wrong
+would otherwise get a clean run with a plausible AUC over whatever fraction of their data
+happened to land on the grid. Loading gets its own `data_source` step record so those
+assumptions are answerable from the run record.
+
+Optional geospatial dependencies are guarded at the import site: without `rasterio`/`pyproj`,
+GeoTIFF reading and reprojection resolve to typed gaps (`missing_geospatial_runtime`,
+`missing_reprojection_runtime`) rather than raising `ImportError`. Apply the same pattern to
+`xferweight` and `sdm_pipepy` when they are wired in.
+
 ### Not yet built
 
-Proposer, selector, calibration harness, and web app. `sources.py` reads `.npy` grids only;
-GeoTIFF is reported as a typed gap rather than approximated. Phases 2-5 in `README.md`.
+Proposer, selector, calibration harness, and web app. Phases 2-5 in `README.md`. Predictors
+must already share a grid and CRS — resampling and reprojecting *predictors* is a typed gap
+(`misaligned_predictors`), as is any raster format other than GeoTIFF/`.npy`.
 
 ## Ecosystem
 
