@@ -1,6 +1,8 @@
 """auto-sdm — autonomous methodology search for species distribution models."""
 
 from .backends import Backend, BackendRegistry, Resolution
+from .builtin import BUILTIN_BACKENDS, default_registry
+from .executor import execute_candidate, execute_run
 from .models import (
     SCHEMA_VERSION,
     Artifact,
@@ -20,10 +22,14 @@ from .models import (
     UnsupportedStep,
     VirtualDataSource,
 )
+from .sources import UnsupportedDataSource, load_data_source
+from .store import ArtifactStore
 
 __all__ = [
+    "BUILTIN_BACKENDS",
     "SCHEMA_VERSION",
     "Artifact",
+    "ArtifactStore",
     "Assumption",
     "Backend",
     "BackendRegistry",
@@ -40,5 +46,11 @@ __all__ = [
     "RunResult",
     "SelectionScore",
     "StepRecord",
+    "UnsupportedDataSource",
     "UnsupportedStep",
+    "VirtualDataSource",
+    "default_registry",
+    "execute_candidate",
+    "execute_run",
+    "load_data_source",
 ]
