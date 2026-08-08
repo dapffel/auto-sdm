@@ -20,6 +20,7 @@ from sklearn.metrics import roc_auc_score
 
 from .backends import BackendRegistry, Runtime
 from .models import Assumption, MethodSpec
+from .profile import StandardProfiler
 
 Outputs = tuple[dict[str, Any], list[Assumption]]
 
@@ -368,7 +369,8 @@ class GradientBoostingAlgorithm(_CrossValidatedAlgorithm):
         return model
 
 
-BUILTIN_BACKENDS: tuple[_Backend, ...] = (
+BUILTIN_BACKENDS: tuple[Any, ...] = (
+    StandardProfiler(),
     DropDuplicateCells(),
     FullExtent(),
     StandardisePredictors(),

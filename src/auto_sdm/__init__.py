@@ -22,6 +22,16 @@ from .models import (
     UnsupportedStep,
     VirtualDataSource,
 )
+from .profile import (
+    DataProfile,
+    EnvironmentalProfile,
+    SamplingProfile,
+    SpatialProfile,
+    TemporalProfile,
+    VolumeProfile,
+    build_profile,
+    profile_context,
+)
 from .sources import UnsupportedDataSource, load_data_source
 from .store import ArtifactStore
 
@@ -33,6 +43,14 @@ __all__ = [
     "Assumption",
     "Backend",
     "BackendRegistry",
+    "DataProfile",
+    "EnvironmentalProfile",
+    "SamplingProfile",
+    "SpatialProfile",
+    "TemporalProfile",
+    "VolumeProfile",
+    "build_profile",
+    "profile_context",
     "CandidatePlan",
     "CandidateResult",
     "DataSource",
