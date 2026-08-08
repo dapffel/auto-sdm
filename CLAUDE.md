@@ -83,6 +83,8 @@ claims reproducibility, and a backend that ignores the seed silently breaks that
   indices are degrees".
 - **`occurrences.py`** — occurrence CSVs. Darwin Core and common column aliases, CRS
   reprojection via `pyproj`, date parsing.
+- **`profile.py`** — `DataProfile`: the deterministic characterisation the proposer's priors
+  and run history both key on. Registry stage `"profile"`.
 - **`executor.py`** — walks `MethodologySpec.steps()` in order, resolving each stage.
 - **`builtin.py`** — the shipped Python backends and `default_registry()`.
 
@@ -115,6 +117,26 @@ Optional geospatial dependencies are guarded at the import site: without `raster
 GeoTIFF reading and reprojection resolve to typed gaps (`missing_geospatial_runtime`,
 `missing_reprojection_runtime`) rather than raising `ImportError`. Apply the same pattern to
 `xferweight` and `sdm_pipepy` when they are wired in.
+
+### The profile is measurement, not judgment
+
+`build_profile` is deterministic given its seed. This is load-bearing: if a profile drifts
+between runs, calibration cannot attribute regret to the selector rather than to the
+profiler, and cross-run learning becomes learning from noise. Interpreting a profile into
+scenario labels is a separate, non-deterministic layer that must be recorded as such.
+
+The profile should **condition** the proposal distribution, never filter it. Narrowing to
+"the three methods for this scenario" replaces the search with a heuristic and destroys the
+ability to measure whether the heuristic was right — which is the premise of the project. An
+always-nonzero tail is what lets calibration find the regions of data space where a prior is
+wrong.
+
+Fields state what they cannot know rather than guessing: `prevalence` is `None` for
+presence-only data (not `1.0`), and `autocorrelation_range_bounded` is `False` when the
+landscape carries a trend across the whole extent, because the semivariogram never reaches a
+sill inside the study area and the number is a lower bound. `suggested_block_size()` clamps
+to the extent — an unclamped range on a trended landscape exceeds the grid, giving one block
+and no folds at all.
 
 ### Not yet built
 
