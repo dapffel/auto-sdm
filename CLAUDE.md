@@ -85,6 +85,11 @@ claims reproducibility, and a backend that ignores the seed silently breaks that
   reprojection via `pyproj`, date parsing.
 - **`profile.py`** — `DataProfile`: the deterministic characterisation the proposer's priors
   and run history both key on. Registry stage `"profile"`.
+- **`priors.py`** — `Prior`/`Condition`: methodological priors as *data*, keyed on dotted
+  paths into the profile and the request. `DEFAULT_PRIORS` is hand-authored in the structure
+  `lit-review` will emit into.
+- **`proposer.py`** — `propose()` enumerates the executable space and ranks it; `explain()`
+  reports per-method weights and the priors behind them.
 - **`executor.py`** — walks `MethodologySpec.steps()` in order, resolving each stage.
 - **`builtin.py`** — the shipped Python backends and `default_registry()`.
 
@@ -137,6 +142,18 @@ landscape carries a trend across the whole extent, because the semivariogram nev
 sill inside the study area and the number is a lower bound. `suggested_block_size()` clamps
 to the extent — an unclamped range on a trended landscape exceeds the grid, giving one block
 and no folds at all.
+
+### Priors rank; they never filter
+
+The registry decides what is **possible**; priors only decide what is **promising**. Weights
+are additive in log space and every candidate keeps a nonzero probability, so a budgeted
+search *samples* rather than truncates. Truncation would convert the search into a
+heuristic and remove the system's ability to discover that a prior was wrong — which is the
+one thing calibration exists to measure. A prior naming a method with no backend is inert,
+never a way to conjure a capability.
+
+Enumerate with `registry.backends_for(stage)`, not `methods_for`: `gbm` and `brt` are one
+backend, and treating aliases as distinct candidates spends half the compute twice.
 
 ### Not yet built
 
