@@ -22,6 +22,7 @@ from .models import (
     UnsupportedStep,
     VirtualDataSource,
 )
+from .priors import DEFAULT_PRIORS, Condition, Prior
 from .profile import (
     DataProfile,
     EnvironmentalProfile,
@@ -32,11 +33,17 @@ from .profile import (
     build_profile,
     profile_context,
 )
+from .proposer import explain, propose
 from .sources import UnsupportedDataSource, load_data_source
 from .store import ArtifactStore
 
 __all__ = [
     "BUILTIN_BACKENDS",
+    "DEFAULT_PRIORS",
+    "Condition",
+    "Prior",
+    "explain",
+    "propose",
     "SCHEMA_VERSION",
     "Artifact",
     "ArtifactStore",

@@ -86,10 +86,27 @@ class BackendRegistry:
         )
 
     def methods_for(self, stage: str) -> list[str]:
-        """The executable search space for one stage — what the proposer may choose from."""
+        """Every method name registered for a stage, including aliases."""
         return sorted(
             method for registered_stage, method in self._backends if registered_stage == stage
         )
+
+    def backends_for(self, stage: str) -> list[Backend]:
+        """The distinct capabilities registered for a stage.
+
+        The proposer enumerates over these rather than over ``methods_for``: 'gbm' and
+        'brt' name one backend, and treating them as two points in the search space would
+        spend half the compute running the same candidate twice.
+        """
+        seen: dict[str, Backend] = {}
+        for (registered_stage, _), backend in self._backends.items():
+            if registered_stage == stage:
+                seen.setdefault(backend.name, backend)
+        return [seen[name] for name in sorted(seen)]
+
+    def canonical_method(self, backend: Backend) -> str:
+        """The name a proposed plan should use for a backend: its first declared method."""
+        return backend.methods[0]
 
     def runtimes(self) -> dict[str, Runtime]:
         return {backend.name: backend.runtime for backend in set(self._backends.values())}
